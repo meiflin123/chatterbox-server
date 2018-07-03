@@ -84,16 +84,21 @@ var requestHandler = function(request, response) {
     if (request.method === 'GET') {
       var statusCode = 200;
       response.writeHead(statusCode, headers);
+      /*console.log(results);*/
       response.end(JSON.stringify({results: results}));
+    
     } else if (request.method === 'POST') {
+  
       let body = [];
       request.on('data', (chunk) => {
         body.push(chunk);
       }).on('end', () => {
         body = Buffer.concat(body).toString();
-        console.log(body);
+        body = JSON.parse(body);
+        // console.log(body);
         response.writeHead(201, headers);
         results.push(body);
+        // console.log(results);
         response.end(JSON.stringify(results));
       });
       
