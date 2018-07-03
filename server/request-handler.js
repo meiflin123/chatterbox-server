@@ -34,7 +34,12 @@ var requestHandler = function(request, response) {
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   // The outgoing status.
-  
+  var defaultCorsHeaders = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'access-control-allow-headers': 'content-type, accept',
+    'access-control-max-age': 10 // Seconds.
+  };
 
   // See the note below about CORS headers.
   var headers = defaultCorsHeaders;
@@ -48,41 +53,70 @@ var requestHandler = function(request, response) {
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
   
-  var statusCode;
-  var response = (status) => {
-    statusCode = status;
-    response.writeHead(statusCode, headers);
-    var result = JSON.stringify({results: results});
-    response.end(result);
-  };
+  // var statusCode;
+  // var response = (status) => {
+  //   statusCode = status;
+  //   response.writeHead(statusCode, headers);
+  //   var result = JSON.stringify({results: results});
+  //   response.end(result);
+  // };
   
-  var routes = {
-    'classes/messages': ''
-  };
+  // var routes = {
+  //   'classes/messages': ''
+  // };
   
-  var methods = {
-    'GET': response('200'),
-    'POST': response('201'),
-    '404': response('404')
-  };
+  // var methods = {
+  //   'GET': response('200'),
+  //   'POST': response('201'),
+  //   '404': response('404')
+  // };
 
-  if (methods[request.method]) {
-    methods[request.method];
+  // if (methods[request.method]) {
+  //   methods[request.method];
+  // } else {
+  //   methods['404'];
+  // }
+
+  
+  var url = request.url.split('?')[0]; // 'classes/messages'
+  
+  if (request.url === '/classes/messages') {
+    if (request.method === 'GET') {
+      var statusCode = 200;
+      response.writeHead(statusCode, headers);
+      response.end(JSON.stringify({results: results}));
+    } else if (request.method === 'POST') {
+      let body = [];
+      request.on('data', (chunk) => {
+        body.push(chunk);
+      }).on('end', () => {
+        body = Buffer.concat(body).toString();
+        console.log(body);
+        response.writeHead(201, headers);
+        results.push(body);
+        response.end(JSON.stringify(results));
+      });
+      
+    }
   } else {
-    methods['404'];
+    response.writeHead('404', headers);
+    response.end('404');
   }
-  // if (method === 'GET') {
-  //   method;
+
+    
+
+  // if (request.method === 'GET') {
+  //   respond('200');
   // } else if (request.method === 'POST') {
   //   var statusCode = 201;
   //   response.writeHead(statusCode, headers);
   //   if (!response.end()) {
   //     console.log('Error, 404');
   //   }
+  // }
   
   // method
     
-  }
   
   
   // Make sure to always call response.end() - Node may not send
@@ -94,14 +128,14 @@ var requestHandler = function(request, response) {
   // node to actually send all the data over to the client.
 };
 
-var results = {
-  'GET': () => {
+// var results = {
+//   'GET': () => {
     
-  },
-  'POST': () => {
+//   },
+//   'POST': () => {
     
-  }
-};
+//   }
+// };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
@@ -112,12 +146,7 @@ var results = {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
+
 
 
 
